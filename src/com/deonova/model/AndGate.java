@@ -24,7 +24,7 @@ public class AndGate extends Gate{
     }
 
     @Override
-    public boolean processOutput(List<Boolean> inputs) {
+    public boolean processOutput() {
         boolean rsf =true;
         for(boolean input : inputs){
             rsf = rsf && input;

@@ -1,22 +1,19 @@
 package com.deonova.ui;
 
-import com.deonova.model.AndGate;
-import com.deonova.model.Gate;
-import com.deonova.model.GatesManager;
-import com.deonova.model.OrGate;
+import com.deonova.model.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
 
 public class GUI {
-    private GatesManager gateManager = new GatesManager();
 
     private JFrame frame = new JFrame("GitVis");
     private JPanel rootPanel = new JPanel();
     private JButton andButton = new JButton("AndGate");
     private JButton orButton = new JButton("OrGate");
+    private JButton inputButton = new JButton("Input");
+    private JCheckBox pokeTool = new JCheckBox("Poke");
 
     private DragPanel gatesPanel = new DragPanel();
 
@@ -28,15 +25,22 @@ public class GUI {
 
     private void initializeActionListeners(){
         andButton.addActionListener(e -> {
-            AndGate gate = new AndGate();
-            gateManager.addGate(gate);
-            gatesPanel.addImage(gate.getImage());
+            Gate gate = new AndGate();
+            gatesPanel.addObject(gate);
         });
 
         orButton.addActionListener(e -> {
-            OrGate gate = new OrGate();
-            gateManager.addGate(gate);
-            gatesPanel.addImage(gate.getImage());
+            Gate gate = new OrGate();
+            gatesPanel.addObject(gate);
+        });
+
+        inputButton.addActionListener(e -> {
+            InputHolder input = new InputHolder();
+            gatesPanel.addObject(input);
+        });
+
+        pokeTool.addItemListener(e -> {
+            gatesPanel.setPoking(e.getStateChange() == ItemEvent.SELECTED);
         });
     }
 
@@ -57,5 +61,11 @@ public class GUI {
         orButton.setBounds(20,100,100,25);
         rootPanel.add(andButton);
         rootPanel.add(orButton);
+
+        inputButton.setBounds(20, 150, 100,25);
+        rootPanel.add(inputButton);
+
+        pokeTool.setBounds(20,200, 100, 25);
+        rootPanel.add(pokeTool);
     }
 }

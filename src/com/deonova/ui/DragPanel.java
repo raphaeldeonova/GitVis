@@ -1,34 +1,42 @@
 package com.deonova.ui;
 
+import com.deonova.model.AppObject;
 import com.deonova.model.Gate;
+import com.deonova.model.InputHolder;
+import com.deonova.model.ObjectManager;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.util.ArrayList;
 
 public class DragPanel extends JPanel {
-    private ArrayList<DraggableImage> images;
+    private ObjectManager objectManager;
     private DraggableImage currImage;
+    private boolean isPoking;
 
     public DragPanel(){
-        images = new ArrayList<>();
+        objectManager = new ObjectManager();
+        isPoking = false;
         ClickListener clickListener = new ClickListener();
         DragListener dragListener = new DragListener();
         this.addMouseListener(clickListener);
         this.addMouseMotionListener(dragListener);
     }
 
-    public void addImage(Image img){
-        images.add(new DraggableImage(img));
+    public void setPoking(boolean bool){
+        isPoking = bool;
+    }
+
+    public void addObject(AppObject object){
+        this.objectManager.add(object);
     }
 
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        for(DraggableImage image: images){
+        for(DraggableImage image: objectManager.getImages()){
             image.getImg().paintIcon(this, g,
                     (int)image.getImageCorner().getX(),
                     (int)image.getImageCorner().getY());
@@ -38,16 +46,35 @@ public class DragPanel extends JPanel {
 
     private class ClickListener extends MouseAdapter{
 
-        //TODO: implement the boundary check (contains...) so that it accurately checks every image
         @Override
         public void mousePressed(MouseEvent e) {
-            for(DraggableImage image: images){
-                System.out.println(image.contains(e.getPoint()));
-                if(image.contains(e.getPoint())){
-                    currImage = image;
-                    currImage.setPrevPt(e.getPoint());
+            if(!isPoking) {
+                for (DraggableImage image : objectManager.getImages()) {
+                    System.out.println(image.contains(e.getPoint()));
+                    if (image.contains(e.getPoint())) {
+                        currImage = image;
+                        currImage.setPrevPt(e.getPoint());
+                    }
+                }
+            } else {
+                for (DraggableImage image : objectManager.getImages()) {
+                    if (image.contains(e.getPoint())) {
+                        AppObject object = objectManager.getObject(image);
+                        if(object.getClass() == InputHolder.class){
+                            InputHolder input = (InputHolder) object;
+                            input.poke();
+                            image.setImg(input.getImage());
+                            repaint();
+                            break;
+                        }
+                    }
                 }
             }
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            currImage = null;
         }
     }
 
@@ -66,7 +93,7 @@ public class DragPanel extends JPanel {
         }
     }
 
-    private class DraggableImage{
+    public static class DraggableImage{
         private ImageIcon img;
         private Point imageCorner;
         private Point prevPt;
@@ -74,6 +101,10 @@ public class DragPanel extends JPanel {
         public DraggableImage(Image img) {
             this.img = new ImageIcon(img);
             this.imageCorner = new Point(0,0);
+        }
+
+        public void setImg(Image img) {
+            this.img = new ImageIcon(img);
         }
 
         //returns true if the point is inside image

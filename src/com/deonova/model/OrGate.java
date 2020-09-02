@@ -23,7 +23,7 @@ public class OrGate extends Gate{
     }
 
     @Override
-    public boolean processOutput(List<Boolean> inputs) {
+    public boolean processOutput() {
         return false;
     }
 }
