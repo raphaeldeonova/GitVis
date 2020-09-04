@@ -1,7 +1,6 @@
 package com.deonova.ui;
 
 import com.deonova.model.AppObject;
-import com.deonova.model.Gate;
 import com.deonova.model.InputHolder;
 import com.deonova.model.ObjectManager;
 
@@ -15,10 +14,12 @@ public class DragPanel extends JPanel {
     private ObjectManager objectManager;
     private DraggableImage currImage;
     private boolean isPoking;
+    private boolean isDragging;
 
     public DragPanel(){
         objectManager = new ObjectManager();
         isPoking = false;
+        isDragging = false;
         ClickListener clickListener = new ClickListener();
         DragListener dragListener = new DragListener();
         this.addMouseListener(clickListener);
@@ -31,6 +32,7 @@ public class DragPanel extends JPanel {
 
     public void addObject(AppObject object){
         this.objectManager.add(object);
+        System.out.println();
     }
 
     @Override
@@ -40,6 +42,14 @@ public class DragPanel extends JPanel {
             image.getImg().paintIcon(this, g,
                     (int)image.getImageCorner().getX(),
                     (int)image.getImageCorner().getY());
+            if(image.getReceiver()!=null){
+                g.drawLine(
+                        (int) image.getSignalSenderPoint().getX(),
+                        (int) image.getSignalSenderPoint().getY(),
+                        (int) image.getReceiver().getSignalsReceiverPoint().getX(),
+                        (int) image.getReceiver().getSignalsReceiverPoint().getY()
+                );
+            }
         }
         repaint();
     }
@@ -50,8 +60,12 @@ public class DragPanel extends JPanel {
         public void mousePressed(MouseEvent e) {
             if(!isPoking) {
                 for (DraggableImage image : objectManager.getImages()) {
-                    System.out.println(image.contains(e.getPoint()));
-                    if (image.contains(e.getPoint())) {
+                    System.out.println(image.aroundSender(e.getPoint()));
+
+                    if(image.aroundSender(e.getPoint())){
+                        currImage = image;
+                        isDragging = true;
+                    } else if (image.contains(e.getPoint())) {
                         currImage = image;
                         currImage.setPrevPt(e.getPoint());
                     }
@@ -74,7 +88,26 @@ public class DragPanel extends JPanel {
 
         @Override
         public void mouseReleased(MouseEvent e) {
+            if(isDragging){
+                for(DraggableImage image: objectManager.getImages()){
+                    if(image.aroundReceiver(e.getPoint())){
+//                        Graphics g = getGraphics();
+//                        Graphics2D g2 = (Graphics2D) g;
+//                        g2.drawLine(
+//                                (int) currImage.getSignalSenderPoint().getX(),
+//                                (int) currImage.getSignalSenderPoint().getY(),
+//                                (int) image.getSignalsReceiverPoint().getX(),
+//                                (int) image.getSignalsReceiverPoint().getY()
+//                                );
+                        currImage.connectReceiver(image);
+                        objectManager.connectObject(currImage, image);
+                        System.out.println("Drawing line from " + currImage.getSignalSenderPoint() + "to " + image.getSignalsReceiverPoint());
+                    }
+                }
+            }
+            isDragging = false;
             currImage = null;
+            System.out.println();
         }
     }
 
@@ -82,56 +115,17 @@ public class DragPanel extends JPanel {
         @Override
         public void mouseDragged(MouseEvent e) {
             if(currImage != null) {
-                Point currentPoint = e.getPoint();
-                currImage.getImageCorner().translate(
-                        (int) (currentPoint.getX() - currImage.getPrevPt().getX()),
-                        (int) (currentPoint.getY() - currImage.getPrevPt().getY())
-                );
-                currImage.setPrevPt(currentPoint);
+                if (!isDragging) {
+                    Point currentPoint = e.getPoint();
+                    currImage.getImageCorner().translate(
+                            (int) (currentPoint.getX() - currImage.getPrevPt().getX()),
+                            (int) (currentPoint.getY() - currImage.getPrevPt().getY())
+                    );
+                    currImage.updateSignalPoints();
+                    currImage.setPrevPt(currentPoint);
+                }
                 repaint();
             }
-        }
-    }
-
-    public static class DraggableImage{
-        private ImageIcon img;
-        private Point imageCorner;
-        private Point prevPt;
-
-        public DraggableImage(Image img) {
-            this.img = new ImageIcon(img);
-            this.imageCorner = new Point(0,0);
-        }
-
-        public void setImg(Image img) {
-            this.img = new ImageIcon(img);
-        }
-
-        //returns true if the point is inside image
-        public boolean contains(Point p){
-            boolean cond1 = p.x >= imageCorner.getX() && p.x <= imageCorner.getX() + Gate.WIDTH;
-            boolean cond2 = p.y >= imageCorner.getY() && p.y <= imageCorner.getY() + Gate.WIDTH;
-            return cond1 && cond2;
-        }
-
-        public void setImageCorner(Point imageCorner) {
-            this.imageCorner = imageCorner;
-        }
-
-        public void setPrevPt(Point prevPt) {
-            this.prevPt = prevPt;
-        }
-
-        public ImageIcon getImg() {
-            return img;
-        }
-
-        public Point getImageCorner() {
-            return imageCorner;
-        }
-
-        public Point getPrevPt() {
-            return prevPt;
         }
     }
 }
