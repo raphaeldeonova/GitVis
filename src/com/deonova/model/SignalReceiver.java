@@ -1,5 +1,6 @@
 package com.deonova.model;
 
+
 public interface SignalReceiver {
-    void receiveSignal(Boolean signal);
+    void update(Object bool, SignalSender sender);
 }

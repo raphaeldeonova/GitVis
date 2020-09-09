@@ -1,11 +1,10 @@
 package com.deonova.ui;
 
-import com.deonova.model.AppObject;
-import com.deonova.model.Gate;
-import com.deonova.model.InputHolder;
+import com.deonova.model.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 
 public class DraggableImage{
     private static final int SIGNAL_OFFSET = 30;
@@ -15,28 +14,35 @@ public class DraggableImage{
     private Point prevPt;
     private Point signalsReceiverPoint;
     private Point signalSenderPoint;
-    private DraggableImage receiver; //image to receive signal from this image
 
     public DraggableImage(AppObject object) {
         this.object = object;
+        this.object.linkDraggableImage(this);
         this.img = new ImageIcon(object.getImage());
         this.imageCorner = new Point(0,0);
         updateSignalPoints();
-        this.receiver = null;
     }
 
-    public void connectReceiver(DraggableImage receiver){
-        this.receiver = receiver;
+    public void connectReceiver(SignalReceiver receiver){
+        if(this.object instanceof SignalSender){
+            ((SignalSender) this.object).addReceiver(receiver);
+        }
     }
 
     public void updateSignalPoints(){
-        if (object.getClass() == InputHolder.class){
+        if (object instanceof InputHolder){
             this.signalSenderPoint = new Point(
                     this.imageCorner.x + InputHolder.WIDTH,
                     this.imageCorner.y + InputHolder.HEIGHT/2
             );
             this.signalsReceiverPoint = null;
-        } else {
+        } else if(object instanceof OutputHolder){
+            this.signalSenderPoint = null;
+            this.signalsReceiverPoint = new Point(
+              this.imageCorner.x,
+              this.imageCorner.y + OutputHolder.HEIGHT/2
+            );
+        }else {
             this.signalSenderPoint = new Point(
                     this.imageCorner.x + Gate.WIDTH,
                     this.imageCorner.y + Gate.HEIGHT / 2
@@ -56,10 +62,13 @@ public class DraggableImage{
     public boolean contains(Point p){
         boolean cond1;
         boolean cond2;
-        if (object.getClass() == InputHolder.class){
+        if (object instanceof InputHolder){
             cond1 = p.x >= imageCorner.getX() && p.x <= imageCorner.getX() + InputHolder.WIDTH;
             cond2 = p.y >= imageCorner.getY() && p.y <= imageCorner.getY() + InputHolder.WIDTH;
-        } else {
+        } else if (object instanceof OutputHolder){
+            cond1 = p.x >= imageCorner.getX() && p.x <= imageCorner.getX() + OutputHolder.WIDTH;
+            cond2 = p.y >= imageCorner.getY() && p.y <= imageCorner.getY() + OutputHolder.WIDTH;
+        }else {
             cond1 = p.x >= imageCorner.getX() && p.x <= imageCorner.getX() + Gate.WIDTH;
             cond2 = p.y >= imageCorner.getY() && p.y <= imageCorner.getY() + Gate.WIDTH;
         }
@@ -69,7 +78,7 @@ public class DraggableImage{
 
     //returns true if the point is around signal receiver
     public boolean aroundReceiver(Point p){
-        if(object.getClass() == InputHolder.class){
+        if(signalsReceiverPoint == null){
             return false;
         }
         double dx = signalsReceiverPoint.getX() - p.getX();
@@ -80,14 +89,13 @@ public class DraggableImage{
 
     //returns true if the point is around signal sender
     public boolean aroundSender(Point p){
+        if(signalSenderPoint == null){
+            return false;
+        }
         double dx = signalSenderPoint.getX() - p.getX();
         double dy = signalSenderPoint.getY() - p.getY();
         double d = Math.sqrt((dx*dx + dy*dy));
         return d <= SIGNAL_OFFSET;
-    }
-
-    public void setImageCorner(Point imageCorner) {
-        this.imageCorner = imageCorner;
     }
 
     public void setPrevPt(Point prevPt) {
@@ -114,7 +122,19 @@ public class DraggableImage{
         return signalsReceiverPoint;
     }
 
-    public DraggableImage getReceiver() {
-        return receiver;
+    public ArrayList<DraggableImage> getReceivers() {
+        if(this.object instanceof SignalSender){
+            ArrayList<SignalReceiver> receivers = ((SignalSender) this.object).getReceivers();
+
+            ArrayList<DraggableImage> rsf = new ArrayList<>();
+            for(SignalReceiver receiver: receivers){
+                if(receiver instanceof AppObject){
+                    rsf.add(((AppObject) receiver).getDraggableImage());
+                }
+            }
+            return rsf;
+        } else {
+            return new ArrayList<>();
+        }
     }
 }

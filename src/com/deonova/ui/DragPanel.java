@@ -3,6 +3,7 @@ package com.deonova.ui;
 import com.deonova.model.AppObject;
 import com.deonova.model.InputHolder;
 import com.deonova.model.ObjectManager;
+import com.deonova.model.SignalReceiver;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,18 +39,25 @@ public class DragPanel extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+        objectManager.update();
+
         for(DraggableImage image: objectManager.getImages()){
+
             image.getImg().paintIcon(this, g,
                     (int)image.getImageCorner().getX(),
                     (int)image.getImageCorner().getY());
-            if(image.getReceiver()!=null){
-                g.drawLine(
-                        (int) image.getSignalSenderPoint().getX(),
-                        (int) image.getSignalSenderPoint().getY(),
-                        (int) image.getReceiver().getSignalsReceiverPoint().getX(),
-                        (int) image.getReceiver().getSignalsReceiverPoint().getY()
-                );
+
+            if(image.getReceivers().size() != 0){
+                for(DraggableImage receiver: image.getReceivers()){
+                    g.drawLine(
+                            (int) image.getSignalSenderPoint().getX(),
+                            (int) image.getSignalSenderPoint().getY(),
+                            (int) receiver.getSignalsReceiverPoint().getX(),
+                            (int) receiver.getSignalsReceiverPoint().getY()
+                    );
+                }
             }
+
         }
         repaint();
     }
@@ -74,7 +82,7 @@ public class DragPanel extends JPanel {
                 for (DraggableImage image : objectManager.getImages()) {
                     if (image.contains(e.getPoint())) {
                         AppObject object = objectManager.getObject(image);
-                        if(object.getClass() == InputHolder.class){
+                        if(object instanceof InputHolder){
                             InputHolder input = (InputHolder) object;
                             input.poke();
                             image.setImg(input.getImage());
@@ -86,28 +94,24 @@ public class DragPanel extends JPanel {
             }
         }
 
+        private int count = 0;
         @Override
         public void mouseReleased(MouseEvent e) {
             if(isDragging){
                 for(DraggableImage image: objectManager.getImages()){
                     if(image.aroundReceiver(e.getPoint())){
-//                        Graphics g = getGraphics();
-//                        Graphics2D g2 = (Graphics2D) g;
-//                        g2.drawLine(
-//                                (int) currImage.getSignalSenderPoint().getX(),
-//                                (int) currImage.getSignalSenderPoint().getY(),
-//                                (int) image.getSignalsReceiverPoint().getX(),
-//                                (int) image.getSignalsReceiverPoint().getY()
-//                                );
-                        currImage.connectReceiver(image);
                         objectManager.connectObject(currImage, image);
                         System.out.println("Drawing line from " + currImage.getSignalSenderPoint() + "to " + image.getSignalsReceiverPoint());
                     }
                 }
+            } else{
+                count++;
             }
             isDragging = false;
             currImage = null;
-            System.out.println();
+            if(count == 6){
+                System.out.println();
+            }
         }
     }
 
@@ -123,6 +127,15 @@ public class DragPanel extends JPanel {
                     );
                     currImage.updateSignalPoints();
                     currImage.setPrevPt(currentPoint);
+                } else {
+                    Graphics g = getGraphics();
+                    Graphics2D g2 = (Graphics2D) g;
+                    g2.drawLine(
+                            (int) currImage.getSignalSenderPoint().getX(),
+                            (int) currImage.getSignalSenderPoint().getY(),
+                            e.getX(),
+                            e.getY()
+                    );
                 }
                 repaint();
             }

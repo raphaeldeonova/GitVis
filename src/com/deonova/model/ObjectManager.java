@@ -14,11 +14,22 @@ public class ObjectManager {
         this.images = new ArrayList<>();
     }
 
+    public void update(){
+        for(AppObject object: objectList){
+            images.get(objectList.indexOf(object)).setImg(object.getImage());
+            if(object instanceof InputHolder){
+                ((InputHolder) object).notifyReceivers();
+            }
+        }
+    }
+
     public void connectObject(DraggableImage sender, DraggableImage receiver){
         AppObject obj1 = getObject(sender);
         AppObject obj2 = getObject(receiver);
         if(obj1 instanceof  SignalSender && obj2 instanceof SignalReceiver){
-            ((SignalSender) obj1).sendSignal((SignalReceiver) obj2);
+            if(!(obj2 instanceof OutputHolder && ((OutputHolder) obj2).isConnected())){
+                ((SignalSender) obj1).addReceiver((SignalReceiver) obj2);
+            }
         }
     }
 
