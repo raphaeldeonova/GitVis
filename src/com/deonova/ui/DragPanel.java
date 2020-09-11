@@ -68,14 +68,22 @@ public class DragPanel extends JPanel {
         public void mousePressed(MouseEvent e) {
             if(!isPoking) {
                 for (DraggableImage image : objectManager.getImages()) {
-                    System.out.println(image.aroundSender(e.getPoint()));
-
                     if(image.aroundSender(e.getPoint())){
                         currImage = image;
                         isDragging = true;
                     } else if (image.contains(e.getPoint())) {
                         currImage = image;
                         currImage.setPrevPt(e.getPoint());
+                    } else if (image.aroundReceiver(e.getPoint())){
+                        for(DraggableImage potentialSender: objectManager.getImages()){
+                            if(objectManager.isConnectedTo(potentialSender, image)){
+                                objectManager.disconnectObject(potentialSender, image);
+                                currImage = potentialSender;
+                                isDragging = true;
+                                break;
+                            }
+                        }
+
                     }
                 }
             } else {

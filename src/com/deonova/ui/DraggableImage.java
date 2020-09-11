@@ -23,12 +23,6 @@ public class DraggableImage{
         updateSignalPoints();
     }
 
-    public void connectReceiver(SignalReceiver receiver){
-        if(this.object instanceof SignalSender){
-            ((SignalSender) this.object).addReceiver(receiver);
-        }
-    }
-
     public void updateSignalPoints(){
         if (object instanceof InputHolder){
             this.signalSenderPoint = new Point(

@@ -75,6 +75,12 @@ public class InputHolder implements AppObject, SignalSender{
         }
     }
 
+    //EFFECTS: remove the given receivers from outputs(if present)
+    @Override
+    public void removeReceiver(SignalReceiver receiver) {
+        this.outputs.remove(receiver);
+    }
+
     //EFFECTS: gets the scaled current image
     @Override
     public Image getImage(){

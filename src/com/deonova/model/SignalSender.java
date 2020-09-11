@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 public interface SignalSender {
     void addReceiver(SignalReceiver receiver);
+    void removeReceiver(SignalReceiver receiver);
     void notifyReceivers();
     ArrayList<SignalReceiver> getReceivers();
 }

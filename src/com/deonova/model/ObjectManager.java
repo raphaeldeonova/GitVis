@@ -23,6 +23,28 @@ public class ObjectManager {
         }
     }
 
+    //EFFECTS: returns true if the sender image is connected to the receiver
+    public boolean isConnectedTo(DraggableImage sender, DraggableImage receiver){
+        AppObject obj1 = getObject(sender);
+        AppObject obj2 = getObject(receiver);
+        if(obj1 instanceof SignalSender && obj2 instanceof SignalReceiver){
+            return ((SignalSender) obj1).getReceivers().contains(obj2);
+        }
+        return false;
+    }
+
+    //EFFECTS: disconnects the sender from the receiver (i.e removes receiver from sender)
+    //MODIFIES: sender
+    public void disconnectObject(DraggableImage sender, DraggableImage receiver){
+        AppObject obj1 = getObject(sender);
+        AppObject obj2 = getObject(receiver);
+        if(obj1 instanceof SignalSender && obj2 instanceof SignalReceiver){
+            ((SignalSender) obj1).removeReceiver((SignalReceiver) obj2);
+        }
+    }
+
+    //EFFECTS: connects the sender to a receiver
+    //MODIFIES: sender
     public void connectObject(DraggableImage sender, DraggableImage receiver){
         AppObject obj1 = getObject(sender);
         AppObject obj2 = getObject(receiver);
@@ -33,6 +55,7 @@ public class ObjectManager {
         }
     }
 
+    //EFFECTS: returns the object given the draggable image
     public AppObject getObject(DraggableImage img){
         if(images.contains(img)){
             return objectList.get(images.indexOf(img));
@@ -40,10 +63,13 @@ public class ObjectManager {
         return null;
     }
 
+    //EFFECTS: returns the list of available draggableImages
     public List<DraggableImage> getImages(){
         return images;
     }
 
+    //EFFECTS: adds the object to objectList, and adds a new draggableImage to images
+    //MODIFIES: this -> objectList, images
     public void add(AppObject object){
         this.objectList.add(object);
         this.images.add(new DraggableImage(object));

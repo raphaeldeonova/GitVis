@@ -97,6 +97,11 @@ public abstract class Gate implements AppObject, SignalReceiver, SignalSender{
         }
     }
 
+    //EFFECTS: removes the given receivers from outputs (if present)
+    @Override
+    public void removeReceiver(SignalReceiver receiver) {
+        this.outputs.remove(receiver);
+    }
 
     @Override
     public int hashCode() {
