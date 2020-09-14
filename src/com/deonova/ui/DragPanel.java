@@ -3,7 +3,6 @@ package com.deonova.ui;
 import com.deonova.model.AppObject;
 import com.deonova.model.InputHolder;
 import com.deonova.model.ObjectManager;
-import com.deonova.model.SignalReceiver;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,15 +15,21 @@ public class DragPanel extends JPanel {
     private DraggableImage currImage;
     private boolean isPoking;
     private boolean isDragging;
+    private boolean isDeleting;
 
     public DragPanel(){
         objectManager = new ObjectManager();
         isPoking = false;
         isDragging = false;
+        isDeleting = false;
         ClickListener clickListener = new ClickListener();
         DragListener dragListener = new DragListener();
         this.addMouseListener(clickListener);
         this.addMouseMotionListener(dragListener);
+    }
+
+    public void setDeleting(boolean deleting) {
+        isDeleting = deleting;
     }
 
     public void setPoking(boolean bool){
@@ -66,7 +71,27 @@ public class DragPanel extends JPanel {
 
         @Override
         public void mousePressed(MouseEvent e) {
-            if(!isPoking) {
+            if(isPoking) {
+                for (DraggableImage image : objectManager.getImages()) {
+                    if (image.contains(e.getPoint())) {
+                        AppObject object = objectManager.getObject(image);
+                        if(object instanceof InputHolder){
+                            InputHolder input = (InputHolder) object;
+                            input.poke();
+                            image.setImg(input.getImage());
+                            repaint();
+                            break;
+                        }
+                    }
+                }
+            } else if(isDeleting){
+                for (DraggableImage image: objectManager.getImages()){
+                    if(image.contains(e.getPoint())){
+                        objectManager.remove(objectManager.getObject(image));
+                        break;
+                    }
+                }
+            } else {
                 for (DraggableImage image : objectManager.getImages()) {
                     if(image.aroundSender(e.getPoint())){
                         currImage = image;
@@ -86,23 +111,9 @@ public class DragPanel extends JPanel {
 
                     }
                 }
-            } else {
-                for (DraggableImage image : objectManager.getImages()) {
-                    if (image.contains(e.getPoint())) {
-                        AppObject object = objectManager.getObject(image);
-                        if(object instanceof InputHolder){
-                            InputHolder input = (InputHolder) object;
-                            input.poke();
-                            image.setImg(input.getImage());
-                            repaint();
-                            break;
-                        }
-                    }
-                }
             }
         }
 
-        private int count = 0;
         @Override
         public void mouseReleased(MouseEvent e) {
             if(isDragging){
@@ -112,14 +123,9 @@ public class DragPanel extends JPanel {
                         System.out.println("Drawing line from " + currImage.getSignalSenderPoint() + "to " + image.getSignalsReceiverPoint());
                     }
                 }
-            } else{
-                count++;
             }
             isDragging = false;
             currImage = null;
-            if(count == 6){
-                System.out.println();
-            }
         }
     }
 

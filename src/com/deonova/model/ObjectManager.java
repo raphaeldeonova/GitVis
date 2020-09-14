@@ -75,4 +75,20 @@ public class ObjectManager {
         this.images.add(new DraggableImage(object));
     }
 
+    //EFFECTS: removes the object from objectList, disconnects every sender to this
+    //         and deletes the appropriate DraggableImage from images
+    public void remove(AppObject object){
+        if(objectList.contains(object)){
+            images.remove(objectList.indexOf(object));
+            if(object instanceof SignalReceiver){
+                for(AppObject obj: objectList){
+                    if(obj instanceof SignalSender){
+                        ((SignalSender) obj).removeReceiver((SignalReceiver) object);
+                    }
+                }
+            }
+            objectList.remove(object);
+        }
+    }
+
 }

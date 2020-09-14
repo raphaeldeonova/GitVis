@@ -14,9 +14,13 @@ public class GUI {
     private JButton orButton = new JButton("OrGate");
     private JButton inputButton = new JButton("Input");
     private JButton outputButton = new JButton("Output");
-    private JCheckBox pokeTool = new JCheckBox("Poke");
     private JButton testingButton = new JButton("Test");
     private JButton notButton = new JButton("Not");
+    private JButton defaultButton = new JButton("Default");
+
+    private ButtonGroup tools = new ButtonGroup();
+    private JRadioButton pokeTool = new JRadioButton("Poke");
+    private JRadioButton removeTool = new JRadioButton("Remove");
 
     private DragPanel gatesPanel = new DragPanel();
 
@@ -52,8 +56,20 @@ public class GUI {
             gatesPanel.addObject(output);
         });
 
+        defaultButton.addActionListener(e -> {
+            tools.clearSelection();
+            gatesPanel.setPoking(false);
+            gatesPanel.setDeleting(false);
+        });
+
         pokeTool.addItemListener(e -> {
             gatesPanel.setPoking(e.getStateChange() == ItemEvent.SELECTED);
+            gatesPanel.setDeleting(e.getStateChange() != ItemEvent.SELECTED);
+        });
+
+        removeTool.addItemListener(e -> {
+            gatesPanel.setDeleting(e.getStateChange() == ItemEvent.SELECTED);
+            gatesPanel.setPoking(e.getStateChange() != ItemEvent.SELECTED);
         });
 
         testingButton.addActionListener(e -> {
@@ -81,18 +97,29 @@ public class GUI {
         rootPanel.add(orButton);
         rootPanel.add(notButton);
 
-
-
         inputButton.setBounds(20, 200, 100,25);
         rootPanel.add(inputButton);
 
         outputButton.setBounds(20,250,100,25);
         rootPanel.add(outputButton);
 
-        pokeTool.setBounds(20,300, 100, 25);
+        JLabel toolLabel = new JLabel("Tools: ");
+        toolLabel.setBounds(20,300,100,25);
+        rootPanel.add(toolLabel);
+
+        defaultButton.setBounds(20,350,100,25);
+        rootPanel.add(defaultButton);
+
+        tools.add(pokeTool);
+        tools.add(removeTool);
+
+        pokeTool.setBounds(20,400, 100, 25);
         rootPanel.add(pokeTool);
 
-        testingButton.setBounds(20,350,100,25);
+        removeTool.setBounds(20, 450, 100, 25);
+        rootPanel.add(removeTool);
+
+        testingButton.setBounds(650,10,100,25);
         rootPanel.add(testingButton);
     }
 }
